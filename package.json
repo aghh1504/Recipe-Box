@@ -3,20 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "axios": "^0.16.1",
     "bootstrap": "^3.3.7",
+    "express": "^4.15.2",
     "lodash": "^4.17.4",
+    "mongoose": "^4.9.4",
+    "prop-types": "^15.5.7",
     "react": "^15.5.3",
     "react-bootstrap": "^0.30.8",
     "react-dom": "^15.5.3",
+    "react-router-dom": "^4.1.1",
     "shortid": "^2.2.8"
   },
   "devDependencies": {
+    "body-parser": "^1.17.1",
+    "nodemon": "^1.11.0",
     "react-scripts": "0.9.5"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "serve": "nodemon server.js"
   }
 }
