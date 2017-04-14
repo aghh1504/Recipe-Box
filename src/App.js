@@ -1,11 +1,10 @@
 import React, { Component } from "react";
 import "./App.css";
-import axios from 'axios';
+import axios from "axios";
 import ModalInstance from "./modalInstance";
 import shortid from "shortid";
 import _ from "lodash";
 import { Panel, ListGroup, ListGroupItem } from "react-bootstrap";
-
 
 class App extends Component {
   constructor(props) {
@@ -23,33 +22,36 @@ class App extends Component {
   }
 
   componentDidMount() {
-  axios.get('http://localhost:8080/recipes')
-    .then(response=>{
-      this.setState({
-        recipes: [...response.data]
-      });
-    })
-    .catch(err=> console.log(err))
-
+    axios
+      .get("http://localhost:8080/recipes")
+      .then(response => {
+        this.setState({
+          recipes: [...response.data]
+        });
+      })
+      .catch(err => console.log(err));
   }
 
   onChange = e => {
     this.setState({ [e.target.name]: e.target.value });
   };
 
-  onClick = (e) => {
+  onClick = e => {
     this.setState({ show: !this.state.show, close: !this.state.close });
-    if(e.target.name == 'close'){
-      this.setState({ shows: false, show: false});
+    if (e.target.name == "close") {
+      this.setState({ shows: false, show: false });
     }
   };
 
   onAdd = e => {
-    axios.post('http://localhost:8080/new',{  title: this.state.title,
-      ingredients: this.state.ingredients,
-      id: shortid.generate()})
-    .then(response => response.status)
-    .catch(err => console.log(err))
+    axios
+      .post("http://localhost:8080/new", {
+        title: this.state.title,
+        ingredients: this.state.ingredients,
+        id: shortid.generate()
+      })
+      .then(response => response.status)
+      .catch(err => console.log(err));
     e.preventDefault();
     this.setState({
       recipes: [
@@ -78,6 +80,13 @@ class App extends Component {
   };
 
   delete = e => {
+    axios
+      .delete('/update/:recipeId',{
+        title: this.state.title,
+        ingredients: this.state.ingredients,
+        id: this.state.id
+      })
+      .then(res => console.log('delete response', res))
     const recipes = this.state.recipes;
     recipes.splice(e.target.id, 1);
     this.setState({
@@ -87,11 +96,14 @@ class App extends Component {
 
   onUpdate = e => {
     e.preventDefault();
-    axios.post('http://localhost:8080/update',{  title: this.state.title,
-      ingredients: this.state.ingredients,
-      id: this.state.id })
-    .then(response => response.status)
-    .catch(err => console.log(err))
+    axios
+      .put('http://localhost:8080/update', {
+        title: this.state.title,
+        ingredients: this.state.ingredients,
+        id: this.state.id
+      })
+      .then(response => console.log(`response ${JSON.stringify(response)}`))
+      .catch(err => console.log(err));
     const recipe = {
       id: this.state.id,
       title: this.state.title,
@@ -123,7 +135,7 @@ class App extends Component {
     );
   };
 
-  updateModal=() =>{
+  updateModal = () => {
     return (
       <ModalInstance
         header="Update Recipe"
@@ -135,37 +147,50 @@ class App extends Component {
         onClick={this.onClick}
       />
     );
-  }
+  };
 
   render() {
     return (
       <div className="App">
-          {this.state.recipes.map((recipe, index) => {
-            const ingredients = recipe.ingredients.split(',')
-            return (
-                <Panel  key={recipe.id} collapsible  bsStyle="success"  header={recipe.title}>
-                  <h4>Ingredients</h4>
-                  <ListGroup fill>
-                    {
-                      ingredients.map(ingredient => <ListGroupItem key={ingredient}>{ingredient}</ListGroupItem>)
-                    }
+        {this.state.recipes.map((recipe, index) => {
+          const ingredients = recipe.ingredients.split(",");
+          return (
+            <Panel
+              key={recipe.id}
+              collapsible
+              bsStyle="success"
+              header={recipe.title}
+            >
+              <h4>Ingredients</h4>
+              <ListGroup fill>
+                {ingredients.map(ingredient => (
+                  <ListGroupItem key={ingredient}>{ingredient}</ListGroupItem>
+                ))}
               </ListGroup>
-              <div className='buttons-in-panel pull-left'>
-              <button
-                onClick={this.edit}
-                id={recipe.id}
-                title={recipe.title}
-                name={recipe.ingredients}
-                className='btn btn-info'
-              >
-                Edit
-              </button>
-              <button onClick={this.delete} id={index} className='btn btn-danger'>Delete</button>
-            </div>
-              </Panel>
-            );
-          })}
-        <button onClick={this.onClick} className='btn btn-primary pull-left'>Add Recipe</button>
+              <div className="buttons-in-panel pull-left">
+                <button
+                  onClick={this.edit}
+                  id={recipe.id}
+                  title={recipe.title}
+                  name={recipe.ingredients}
+                  className="btn btn-info"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={this.delete}
+                  id={index}
+                  className="btn btn-danger"
+                >
+                  Delete
+                </button>
+              </div>
+            </Panel>
+          );
+        })}
+        <button onClick={this.onClick} className="btn btn-primary pull-left">
+          Add Recipe
+        </button>
         {this.state.show ? this.renderModal() : null}
         {this.state.shows ? this.updateModal() : null}
       </div>

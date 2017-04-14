@@ -1,75 +1,73 @@
-var express = require('express');
+var express = require("express");
 var app = express();
-const bodyParser= require('body-parser');
-var mongoose = require('mongoose');
+const bodyParser = require("body-parser");
+var mongoose = require("mongoose");
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/recipes');
+mongoose.connect("mongodb://localhost/recipes");
 
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-  console.log('connect mongoose');
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", function() {
+  console.log("connect mongoose");
 });
 
-var Recipe = mongoose.model('Recipe', {
+var Recipe = mongoose.model("Recipe", {
   title: String,
   ingredients: String,
   id: Number
 });
 
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// var rec = new Recipe({
-//   title: 'Pancakes',
-//   ingredients: 'Milk,Flour,Eggs',
-//   id: 1
-// });
-//
-// rec.save(function (err) {
-//   if (err) {
-//     console.log(err);
-//   } else {
-//     //console.log('meow');
-//   }
-// });
+// GET FROM DATABASE
+app.get("/recipes", function(req, res) {
+  Recipe.find({}, function(err, results) {
+    res.status(200).json(results);
+  });
+});
 
-app.use(bodyParser.urlencoded({extended: true}))
+//ADD NEW
+app.post("/new", function(req, res) {
+  db.collection("recipes").insert(req.body, function(err, results) {
+    console.log("results", results);
+    res.status(200).json(results);
+  });
+});
 
-app.get('/recipes', function (req, res) {
-Recipe.find({}, function(err, results){
-  res.status(200).json(results);
+//UPDATE
+app.get('/update/:recipeId', function(req, res) {
+  Task.findById(req.params.recipeId, function(err, task) {
+    if (err)
+      res.send(err);
+    res.json(task);
+  });
 })
 
+app.put("/update/:recipeId", function(req, res) {
+  console.log("Inside put route: ", JSON.stringify(req.body));
+  Recipe.findByIdAndUpdate(req.params.recipeId, req.body, {new: true}, function(err, updatedRecipe) {
+    console.log("updatedRecipe", updatedRecipe);
+    if (err)
+       res.send(err);
+      res.json(updatedRecipe);
+  });
 });
 
-
-app.post('/new', function(req, res){
-  db.collection('recipes').insert(req.body, function(err, results){
-    console.log('results', results);
-    res.status(200).json(results);
-  })
+//DELETE
+app.delete("/update/:recipeId", function(req, res) {
+  Recipe.remove({
+    _id: req.params.recipeId
+  }, function(err, recipe) {
+    if (err)
+      res.send(err);
+    res.json({ message: 'Task successfully deleted' });
+  });
 });
 
-app.post('/update', function(req, res){
-  console.log('Inside update route: ', req.body);
-  db.collection('recipes').update({title: req.body.title}, req.body, function(err, results){
-    res.status(200).json(results);
-  })
-});
-
-app.post('/delete', function(req, res){
-  db.collection('recipes').delete(req.body, function(err, results){
-    console.log('results', results);
-    res.status(200).json(results);
-  })
-});
-
-
-
-
-
-app.listen(8080, function () {
-  console.log('Example app listening on port 8080!')
+app.listen(8080, function() {
+  console.log("Example app listening on port 8080!");
 });
