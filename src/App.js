@@ -19,11 +19,12 @@ class App extends Component {
       id: "",
       recipes: []
     };
+    this.delete = this.delete.bind(this)
   }
 
   componentDidMount() {
     axios
-      .get("http://localhost:8080/recipes")
+      .get("/recipes")
       .then(response => {
         this.setState({
           recipes: [...response.data]
@@ -38,14 +39,14 @@ class App extends Component {
 
   onClick = e => {
     this.setState({ show: !this.state.show, close: !this.state.close });
-    if (e.target.name == "close") {
+    if (e.target.name === "close") {
       this.setState({ shows: false, show: false });
     }
   };
 
   onAdd = e => {
     axios
-      .post("http://localhost:8080/new", {
+      .post("/new", {
         title: this.state.title,
         ingredients: this.state.ingredients,
         id: shortid.generate()
@@ -81,7 +82,7 @@ class App extends Component {
 
   delete = e => {
     axios
-      .delete('/update/:recipeId',{
+      .delete(`/update/${e.target.id}`,{
         title: this.state.title,
         ingredients: this.state.ingredients,
         id: this.state.id
@@ -97,7 +98,7 @@ class App extends Component {
   onUpdate = e => {
     e.preventDefault();
     axios
-      .put('http://localhost:8080/update', {
+      .put(`/update/${e.target.id}`, {
         title: this.state.title,
         ingredients: this.state.ingredients,
         id: this.state.id
@@ -109,6 +110,7 @@ class App extends Component {
       title: this.state.title,
       ingredients: this.state.ingredients
     };
+    console.log('recipe', recipe);
     let recipes = this.state.recipes;
     const index = _.findIndex(this.state.recipes, { id: this.state.id });
     recipes[index] = recipe;
@@ -170,7 +172,7 @@ class App extends Component {
               <div className="buttons-in-panel pull-left">
                 <button
                   onClick={this.edit}
-                  id={recipe.id}
+                  id={recipe._id}
                   title={recipe.title}
                   name={recipe.ingredients}
                   className="btn btn-info"
@@ -179,7 +181,7 @@ class App extends Component {
                 </button>
                 <button
                   onClick={this.delete}
-                  id={index}
+                  id={recipe._id}
                   className="btn btn-danger"
                 >
                   Delete

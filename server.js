@@ -8,6 +8,12 @@ mongoose.connect("mongodb://localhost/recipes");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 
 var db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -49,7 +55,7 @@ app.get('/update/:recipeId', function(req, res) {
 
 app.put("/update/:recipeId", function(req, res) {
   console.log("Inside put route: ", JSON.stringify(req.body));
-  Recipe.findByIdAndUpdate(req.params.recipeId, req.body, {new: true}, function(err, updatedRecipe) {
+  Recipe.findByIdAndUpdate(req.params.recipeId, req.body, function(err, updatedRecipe) {
     console.log("updatedRecipe", updatedRecipe);
     if (err)
        res.send(err);
