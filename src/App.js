@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import "./App.css";
 import axios from "axios";
 import ModalInstance from "./modalInstance";
-import shortid from "shortid";
 import _ from "lodash";
 import { Panel, ListGroup, ListGroupItem } from "react-bootstrap";
 
@@ -16,11 +15,16 @@ class App extends Component {
       close: true,
       ingredients: "",
       title: "",
-      id: "",
+      id: 0,
       recipes: []
     };
     this.delete = this.delete.bind(this)
   }
+
+  componentWillMount() {
+    const id = _.uniqueId("prefix-");
+    this.setState({id: id});
+}
 
   componentDidMount() {
     axios
@@ -49,7 +53,7 @@ class App extends Component {
       .post("/new", {
         title: this.state.title,
         ingredients: this.state.ingredients,
-        id: shortid.generate()
+        id: this.state.id
       })
       .then(response => response.status)
       .catch(err => console.log(err));
@@ -60,7 +64,7 @@ class App extends Component {
         {
           title: this.state.title,
           ingredients: this.state.ingredients,
-          id: shortid.generate()
+          id: this.state.id
         }
       ],
       close: !this.state.close,
@@ -97,20 +101,22 @@ class App extends Component {
 
   onUpdate = e => {
     e.preventDefault();
+    console.log('id update: ', e.target.id);
     axios
       .put(`/update/${e.target.id}`, {
         title: this.state.title,
         ingredients: this.state.ingredients,
-        id: this.state.id
+        id: e.target.id
       })
-      .then(response => console.log(`response ${JSON.stringify(response)}`))
-      .catch(err => console.log(err));
+      .then(response => console.log('response from update', response))
+      .catch(err => console.log(err))
     const recipe = {
-      id: this.state.id,
+      id: e.target.id,
       title: this.state.title,
       ingredients: this.state.ingredients
     };
-    console.log('recipe', recipe);
+    console.log('recipe id', recipe.id);
+    console.log('recipe id state', this.state.id);
     let recipes = this.state.recipes;
     const index = _.findIndex(this.state.recipes, { id: this.state.id });
     recipes[index] = recipe;
@@ -130,6 +136,7 @@ class App extends Component {
         onSubmit={this.onAdd}
         title={this.state.title}
         ingredients={this.state.ingredients}
+        id={this.state.id}
         onChange={this.onChange}
         footer="Add Recipe"
         onClick={this.onClick}
@@ -145,6 +152,7 @@ class App extends Component {
         title={this.state.title}
         ingredients={this.state.ingredients}
         onChange={this.onChange}
+        id={this.state.id}
         footer="Update Recipe"
         onClick={this.onClick}
       />
@@ -158,7 +166,7 @@ class App extends Component {
           const ingredients = recipe.ingredients.split(",");
           return (
             <Panel
-              key={recipe.id}
+              key={index}
               collapsible
               bsStyle="success"
               header={recipe.title}

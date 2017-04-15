@@ -19,7 +19,7 @@ export default class  ModalInstance extends Component  {
         <Modal.Header>
             <Modal.Title>{this.props.header}</Modal.Title>
         </Modal.Header>
-        <form onSubmit={this.onSubmit}>
+        <form onSubmit={this.onSubmit} id={this.props.id}>
             <Modal.Body>
                 <h2>Recipe</h2>
                 <input value={this.props.title} name="title" onChange={this.onChange} placeholder="Recipe Name" className="form-control"/>

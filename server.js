@@ -46,7 +46,7 @@ app.post("/new", function(req, res) {
 
 //UPDATE
 app.get('/update/:recipeId', function(req, res) {
-  Task.findById(req.params.recipeId, function(err, task) {
+  Task.findById(req.params.recipeId, req.body, function(err, task) {
     if (err)
       res.send(err);
     res.json(task);
