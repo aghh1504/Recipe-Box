@@ -1,211 +1,94 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import "./App.css";
 import axios from "axios";
+import RecipeItem from "./RecipeItem"
 import ModalInstance from "./modalInstance";
 import _ from "lodash";
-import { Panel, ListGroup, ListGroupItem } from "react-bootstrap";
 
 class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      show: false,
-      open: false,
-      shows: false,
-      close: true,
-      ingredients: "",
-      title: "",
-      id: 0,
-      recipes: []
-    };
-    this.delete = this.delete.bind(this)
-  }
-
-  componentWillMount() {
-    const id = _.uniqueId("prefix-");
-    this.setState({id: id});
-}
-
-  componentDidMount() {
-    axios
-      .get("/recipes")
-      .then(response => {
-        this.setState({
-          recipes: [...response.data]
-        });
-      })
-      .catch(err => console.log(err));
-  }
-
-  onChange = e => {
-    this.setState({ [e.target.name]: e.target.value });
-  };
-
-  onClick = e => {
-    this.setState({ show: !this.state.show, close: !this.state.close });
-    if (e.target.name === "close") {
-      this.setState({ shows: false, show: false });
+    constructor(props) {
+        super(props);
+        this.state = {
+            recipes: [],
+            show: false,
+            ingredients: "",
+            title: ""
+        };
     }
-  };
 
-  onAdd = e => {
-    axios
-      .post("/new", {
-        title: this.state.title,
-        ingredients: this.state.ingredients,
-        id: this.state.id
-      })
-      .then(response => response.status)
-      .catch(err => console.log(err));
-    e.preventDefault();
-    this.setState({
-      recipes: [
-        ...this.state.recipes,
-        {
-          title: this.state.title,
-          ingredients: this.state.ingredients,
-          id: this.state.id
+    componentDidMount() {
+        axios.get("/recipes").then(response => {
+            this.setState({
+                recipes: [...response.data]
+            });
+        }).catch(err => console.log(err));
+    }
+
+    onAdd = e => {
+        const newRecipe = {
+            title: this.state.title,
+            ingredients: this.state.ingredients
         }
-      ],
-      close: !this.state.close,
-      show: !this.state.show,
-      title: "",
-      ingredients: ""
-    });
-  };
-
-  edit = e => {
-    this.setState({
-      close: !this.state.close,
-      shows: !this.state.shows,
-      title: e.target.title,
-      ingredients: e.target.name,
-      id: e.target.id
-    });
-  };
-
-  delete = e => {
-    axios
-      .delete(`/update/${e.target.id}`,{
-        title: this.state.title,
-        ingredients: this.state.ingredients,
-        id: this.state.id
-      })
-      .then(res => console.log('delete response', res))
-    const recipes = this.state.recipes;
-    recipes.splice(e.target.id, 1);
-    this.setState({
-      recipes: recipes
-    });
-  };
-
-  onUpdate = e => {
-    e.preventDefault();
-    console.log('id update: ', e.target.id);
-    axios
-      .put(`/update/${e.target.id}`, {
-        title: this.state.title,
-        ingredients: this.state.ingredients,
-        id: e.target.id
-      })
-      .then(response => console.log('response from update', response))
-      .catch(err => console.log(err))
-    const recipe = {
-      id: e.target.id,
-      title: this.state.title,
-      ingredients: this.state.ingredients
+        axios.post("/new", newRecipe).then(response => {
+            newRecipe.id = response.data.ops[0]._id
+            console.log(` adding new ${JSON.stringify(newRecipe)}`);
+            this.setState({
+                recipes: [
+                    ...this.state.recipes,
+                    newRecipe
+                ]
+            });
+        }).catch(err => console.log(err));
     };
-    console.log('recipe id', recipe.id);
-    console.log('recipe id state', this.state.id);
-    let recipes = this.state.recipes;
-    const index = _.findIndex(this.state.recipes, { id: this.state.id });
-    recipes[index] = recipe;
-    this.setState({
-      recipes,
-      close: !this.state.close,
-      shows: !this.state.shows,
-      title: "",
-      ingredients: ""
-    });
-  };
 
-  renderModal = () => {
-    return (
-      <ModalInstance
-        header="Add Recipe"
-        onSubmit={this.onAdd}
-        title={this.state.title}
-        ingredients={this.state.ingredients}
-        id={this.state.id}
-        onChange={this.onChange}
-        footer="Add Recipe"
-        onClick={this.onClick}
-      />
-    );
-  };
+    delete = e => {
+        const id = e.target.id
+        axios.delete(`/recipe/${id}`).then(res => {
+            const recipes = this.state.recipes.filter(recipe => recipe._id !== id);
+            this.setState({recipes: recipes});
+        })
+    };
 
-  updateModal = () => {
-    return (
-      <ModalInstance
-        header="Update Recipe"
-        onSubmit={this.onUpdate}
-        title={this.state.title}
-        ingredients={this.state.ingredients}
-        onChange={this.onChange}
-        id={this.state.id}
-        footer="Update Recipe"
-        onClick={this.onClick}
-      />
-    );
-  };
+    onClick = e => {
+        this.setState({
+            show: !this.state.show
+        });
+    };
 
-  render() {
-    return (
-      <div className="App">
-        {this.state.recipes.map((recipe, index) => {
-          const ingredients = recipe.ingredients.split(",");
-          return (
-            <Panel
-              key={index}
-              collapsible
-              bsStyle="success"
-              header={recipe.title}
-            >
-              <h4>Ingredients</h4>
-              <ListGroup fill>
-                {ingredients.map(ingredient => (
-                  <ListGroupItem key={ingredient}>{ingredient}</ListGroupItem>
-                ))}
-              </ListGroup>
-              <div className="buttons-in-panel pull-left">
-                <button
-                  onClick={this.edit}
-                  id={recipe._id}
-                  title={recipe.title}
-                  name={recipe.ingredients}
-                  className="btn btn-info"
-                >
-                  Edit
+    update = (id, title, ingredients) => {
+        const indexUpdated = this.state.recipes.findIndex(recipe => recipe._id === id);
+        const recipes = this.state.recipes;
+        recipes[indexUpdated] = {
+            _id: id,
+            title: title,
+            ingredients: ingredients
+        }
+        this.setState({recipes: recipes});
+    }
+
+    renderModal = () => {
+        return (<ModalInstance header="Add Recipe" onSubmit={this.onAdd} title={this.state.title} ingredients={this.state.ingredients} id={this.state.id} onChange={this.onChange} footer="Add Recipe" onClick={this.onClick}/>);
+    };
+    onChange = e => {
+        this.setState({
+            [e.target.name]: e.target.value
+        });
+    };
+
+    render() {
+        const recipes = this.state.recipes.map((recipe, index) => <RecipeItem key={index} recipe={recipe} index={index} delete={this.delete} update={this.update}/>)
+        return (
+            <div className="App">
+                {recipes}
+                <button onClick={this.onClick} className="btn btn-primary pull-left">
+                    Add Recipe
                 </button>
-                <button
-                  onClick={this.delete}
-                  id={recipe._id}
-                  className="btn btn-danger"
-                >
-                  Delete
-                </button>
-              </div>
-            </Panel>
-          );
-        })}
-        <button onClick={this.onClick} className="btn btn-primary pull-left">
-          Add Recipe
-        </button>
-        {this.state.show ? this.renderModal() : null}
-        {this.state.shows ? this.updateModal() : null}
-      </div>
-    );
-  }
+                {this.state.show
+                    ? this.renderModal()
+                    : null}
+            </div>
+        );
+    }
 }
 
 export default App;

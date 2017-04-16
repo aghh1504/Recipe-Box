@@ -32,30 +32,24 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // GET FROM DATABASE
 app.get("/recipes", function(req, res) {
   Recipe.find({}, function(err, results) {
+    console.log(`get recipres ${JSON.stringify(results)}`)
     res.status(200).json(results);
   });
 });
 
 //ADD NEW
 app.post("/new", function(req, res) {
+  console.log(`new recipres ${JSON.stringify(req.body)}`)
   db.collection("recipes").insert(req.body, function(err, results) {
-    console.log("results", results);
+    console.log("new results", results);
     res.status(200).json(results);
   });
 });
 
-//UPDATE
-app.get('/update/:recipeId', function(req, res) {
-  Task.findById(req.params.recipeId, req.body, function(err, task) {
-    if (err)
-      res.send(err);
-    res.json(task);
-  });
-})
 
-app.put("/update/:recipeId", function(req, res) {
+app.put("/recipe/", function(req, res) {
   console.log("Inside put route: ", JSON.stringify(req.body));
-  Recipe.findByIdAndUpdate(req.params.recipeId, req.body, function(err, updatedRecipe) {
+  Recipe.findByIdAndUpdate(req.body._id, req.body, function(err, updatedRecipe) {
     console.log("updatedRecipe", updatedRecipe);
     if (err)
        res.send(err);
@@ -64,7 +58,7 @@ app.put("/update/:recipeId", function(req, res) {
 });
 
 //DELETE
-app.delete("/update/:recipeId", function(req, res) {
+app.delete("/recipe/:recipeId", function(req, res) {
   Recipe.remove({
     _id: req.params.recipeId
   }, function(err, recipe) {
